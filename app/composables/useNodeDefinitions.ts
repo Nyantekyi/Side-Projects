@@ -28,5 +28,13 @@ export const nodeDefinitions: NodeDefinition[] = [
     icon: '❓',
     color: '#f59e0b',
     description: 'Conditional logic'
+  },
+  {
+    type: 'project',
+    label: 'Project',
+    icon: '📁',
+    color: '#ec4899',
+    description: 'Reference another project as a node'
   }
 ]
+

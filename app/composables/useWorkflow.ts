@@ -1,22 +1,78 @@
 import { ref } from 'vue'
-import type { WorkflowNode, Connection, WorkflowState } from '../types/workflow'
+import type { WorkflowNode, Link } from '../types/workflow'
 
-export const useWorkflow = () => {
+export const useWorkflow = (projectId?: string) => {
   const nodes = ref<WorkflowNode[]>([])
-  const connections = ref<Connection[]>([])
+  const links = ref<Link[]>([])
   const selectedNode = ref<string | null>(null)
   const isConnecting = ref(false)
   const connectingFrom = ref<string | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  const addNode = (node: WorkflowNode) => {
-    nodes.value.push(node)
+  // Fetch nodes for current project
+  const fetchNodes = async (projId: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await $fetch<WorkflowNode[]>('/api/nodes', {
+        query: { projectId: projId }
+      })
+      nodes.value = data
+    } catch (err) {
+      error.value = 'Failed to fetch nodes'
+      console.error(err)
+    } finally {
+      loading.value = false
+    }
   }
 
-  const removeNode = (nodeId: string) => {
-    nodes.value = nodes.value.filter(n => n.id !== nodeId)
-    connections.value = connections.value.filter(
-      c => c.sourceId !== nodeId && c.targetId !== nodeId
-    )
+  // Fetch links for current project
+  const fetchLinks = async (projId: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await $fetch<Link[]>('/api/links', {
+        query: { projectId: projId }
+      })
+      links.value = data
+    } catch (err) {
+      error.value = 'Failed to fetch links'
+      console.error(err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const addNode = async (node: WorkflowNode) => {
+    if (!node.projectId) return
+    
+    try {
+      const newNode = await $fetch<WorkflowNode>('/api/nodes', {
+        method: 'POST',
+        body: node
+      })
+      nodes.value.push(newNode)
+      return newNode
+    } catch (err) {
+      error.value = 'Failed to add node'
+      console.error(err)
+      throw err
+    }
+  }
+
+  const removeNode = async (nodeId: string) => {
+    try {
+      await $fetch(`/api/nodes/${nodeId}`, { method: 'DELETE' })
+      nodes.value = nodes.value.filter(n => n.id !== nodeId)
+      links.value = links.value.filter(
+        l => l.sourceNodeId !== nodeId && l.targetNodeId !== nodeId
+      )
+    } catch (err) {
+      error.value = 'Failed to remove node'
+      console.error(err)
+      throw err
+    }
   }
 
   const updateNodePosition = (nodeId: string, x: number, y: number) => {
@@ -34,22 +90,36 @@ export const useWorkflow = () => {
     }
   }
 
-  const addConnection = (sourceId: string, targetId: string) => {
-    // Check if connection already exists
-    const exists = connections.value.some(
-      c => c.sourceId === sourceId && c.targetId === targetId
+  const addLink = async (sourceNodeId: string, targetNodeId: string, projId: string, label?: string) => {
+    // Check if link already exists
+    const exists = links.value.some(
+      l => l.sourceNodeId === sourceNodeId && l.targetNodeId === targetNodeId
     )
-    if (!exists && sourceId !== targetId) {
-      connections.value.push({
-        id: `${sourceId}-${targetId}`,
-        sourceId,
-        targetId
-      })
+    if (!exists && sourceNodeId !== targetNodeId) {
+      try {
+        const newLink = await $fetch<Link>('/api/links', {
+          method: 'POST',
+          body: { sourceNodeId, targetNodeId, projectId: projId, label }
+        })
+        links.value.push(newLink)
+        return newLink
+      } catch (err) {
+        error.value = 'Failed to add link'
+        console.error(err)
+        throw err
+      }
     }
   }
 
-  const removeConnection = (connectionId: string) => {
-    connections.value = connections.value.filter(c => c.id !== connectionId)
+  const removeLink = async (linkId: string) => {
+    try {
+      await $fetch(`/api/links/${linkId}`, { method: 'DELETE' })
+      links.value = links.value.filter(l => l.id !== linkId)
+    } catch (err) {
+      error.value = 'Failed to remove link'
+      console.error(err)
+      throw err
+    }
   }
 
   const startConnecting = (nodeId: string) => {
@@ -57,9 +127,9 @@ export const useWorkflow = () => {
     connectingFrom.value = nodeId
   }
 
-  const finishConnecting = (targetId: string) => {
+  const finishConnecting = async (targetId: string, projId: string) => {
     if (connectingFrom.value && connectingFrom.value !== targetId) {
-      addConnection(connectingFrom.value, targetId)
+      await addLink(connectingFrom.value, targetId, projId)
     }
     isConnecting.value = false
     connectingFrom.value = null
@@ -112,14 +182,21 @@ export const useWorkflow = () => {
             evaluatedBy: node.data.label
           }
           break
+        case 'project':
+          output = {
+            ...input,
+            projectNode: node.data.label,
+            linkedProjectId: node.linkedProjectId
+          }
+          break
       }
 
       results.set(nodeId, output)
 
       // Execute connected nodes
-      const outgoingConnections = connections.value.filter(c => c.sourceId === nodeId)
-      for (const conn of outgoingConnections) {
-        await executeNode(conn.targetId, output)
+      const outgoingLinks = links.value.filter(l => l.sourceNodeId === nodeId)
+      for (const link of outgoingLinks) {
+        await executeNode(link.targetNodeId, output)
       }
 
       return output
@@ -127,7 +204,7 @@ export const useWorkflow = () => {
 
     // Find trigger nodes (nodes with no incoming connections)
     const triggerNodes = nodes.value.filter(node => 
-      !connections.value.some(c => c.targetId === node.id)
+      !links.value.some(l => l.targetNodeId === node.id)
     )
 
     console.log('Starting workflow execution...')
@@ -142,22 +219,26 @@ export const useWorkflow = () => {
 
   const clearWorkflow = () => {
     nodes.value = []
-    connections.value = []
+    links.value = []
     selectedNode.value = null
   }
 
   return {
     nodes,
-    connections,
+    links,
     selectedNode,
     isConnecting,
     connectingFrom,
+    loading,
+    error,
+    fetchNodes,
+    fetchLinks,
     addNode,
     removeNode,
     updateNodePosition,
     updateNodeData,
-    addConnection,
-    removeConnection,
+    addLink,
+    removeLink,
     startConnecting,
     finishConnecting,
     cancelConnecting,
@@ -165,3 +246,4 @@ export const useWorkflow = () => {
     clearWorkflow
   }
 }
+

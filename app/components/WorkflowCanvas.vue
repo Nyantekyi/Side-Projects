@@ -2,16 +2,27 @@
   <div class="workflow-canvas-container">
     <div class="toolbar">
       <h1 class="app-title">
-        <span class="logo">⚡</span>
-        Workflow Builder
+        <span class="logo">📊</span>
+        Canvas
       </h1>
       <div class="toolbar-actions">
-        <button @click="executeWorkflow" class="btn btn-primary" title="Execute workflow">
-          ▶ Execute
-        </button>
-        <button @click="clearWorkflow" class="btn btn-danger" title="Clear all nodes">
-          🗑 Clear
-        </button>
+        <UButton
+          @click="executeWorkflow"
+          icon="i-heroicons-play"
+          color="primary"
+          title="Execute workflow"
+        >
+          Execute
+        </UButton>
+        <UButton
+          @click="clearWorkflow"
+          icon="i-heroicons-trash"
+          color="error"
+          variant="soft"
+          title="Clear all nodes"
+        >
+          Clear
+        </UButton>
       </div>
     </div>
     
@@ -28,7 +39,7 @@
           :key="connection.id"
           :connection="connection"
           :nodes="nodes"
-          @delete="removeConnection(connection.id)"
+          @delete="removeLink(connection.id)"
         />
       </svg>
       
@@ -43,7 +54,7 @@
         @select="selectNode(node.id)"
         @delete="removeNode(node.id)"
         @start-connect="startConnecting(node.id)"
-        @finish-connect="finishConnecting(node.id)"
+        @finish-connect="handleFinishConnecting(node.id)"
       />
 
       <div v-if="nodes.length === 0" class="empty-state">
@@ -56,17 +67,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useWorkflow } from '../composables/useWorkflow'
-import type { NodeDefinition } from '../types/workflow'
+import type { NodeDefinition, WorkflowNode as WorkflowNodeType, Link } from '../types/workflow'
 import WorkflowNode from './WorkflowNode.vue'
 import WorkflowConnection from './WorkflowConnection.vue'
 
+const props = defineProps<{
+  projectId: string
+}>()
+
 const {
   nodes,
-  connections,
+  links,
   selectedNode,
   isConnecting,
+  loading,
+  fetchNodes,
+  fetchLinks,
   addNode,
   removeNode,
   updateNodePosition,
@@ -74,12 +92,20 @@ const {
   startConnecting,
   finishConnecting,
   cancelConnecting,
-  removeConnection,
+  removeLink,
   executeWorkflow,
   clearWorkflow
 } = useWorkflow()
 
 const canvasRef = ref<HTMLElement>()
+
+// Load nodes and links when projectId changes
+watch(() => props.projectId, async (newProjectId) => {
+  if (newProjectId) {
+    await fetchNodes(newProjectId)
+    await fetchLinks(newProjectId)
+  }
+}, { immediate: true })
 
 const selectNode = (nodeId: string) => {
   selectedNode.value = nodeId
@@ -106,17 +132,31 @@ const handleDrop = (e: DragEvent) => {
   addNodeAtPosition(nodeDef, x, y)
 }
 
-const addNodeAtPosition = (nodeDef: NodeDefinition, x: number, y: number) => {
-  const newNode = {
+const addNodeAtPosition = async (nodeDef: NodeDefinition, x: number, y: number) => {
+  const newNode: WorkflowNodeType = {
     id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    projectId: props.projectId,
     position: { x, y },
     data: {
       label: `${nodeDef.label} Node`,
       type: nodeDef.type
     }
   }
-  addNode(newNode)
+  await addNode(newNode)
 }
+
+const handleFinishConnecting = async (targetId: string) => {
+  await finishConnecting(targetId, props.projectId)
+}
+
+// Convert links to connections format for the component
+const connections = computed(() => {
+  return links.value.map(link => ({
+    id: link.id,
+    sourceId: link.sourceNodeId,
+    targetId: link.targetNodeId
+  }))
+})
 
 defineExpose({
   addNodeAtPosition

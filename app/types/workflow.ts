@@ -9,12 +9,46 @@ export interface NodeData {
   config?: Record<string, any>
 }
 
-export interface WorkflowNode {
+// Workspace is the top level container
+export interface Workspace {
   id: string
-  position: Position
-  data: NodeData
+  name: string
+  description?: string
+  createdAt: Date
+  updatedAt: Date
 }
 
+// Project can exist in a workspace and can also become a node in another project
+export interface Project {
+  id: string
+  workspaceId: string
+  name: string
+  description?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Node represents a workflow node within a project
+export interface WorkflowNode {
+  id: string
+  projectId: string
+  position: Position
+  data: NodeData
+  // Reference to another project if this node represents a project
+  linkedProjectId?: string
+}
+
+// Link represents connections between nodes (many-to-many)
+export interface Link {
+  id: string
+  sourceNodeId: string
+  targetNodeId: string
+  projectId: string
+  label?: string
+  createdAt: Date
+}
+
+// Legacy Connection interface for backward compatibility
 export interface Connection {
   id: string
   sourceId: string
@@ -26,7 +60,7 @@ export interface WorkflowState {
   connections: Connection[]
 }
 
-export type NodeType = 'trigger' | 'transform' | 'action' | 'condition'
+export type NodeType = 'trigger' | 'transform' | 'action' | 'condition' | 'project'
 
 export interface NodeDefinition {
   type: NodeType
