@@ -1,15 +1,18 @@
-import { getSession } from '../../utils/db'
+import { useMockDb } from '../../utils/mockDb'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
-  const session = await getSession()
+  const mockDb = useMockDb()
+  
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      message: 'Node ID is required'
+    })
+  }
   
   try {
-    await session.run(`
-      MATCH (n:Node {id: $id})
-      DETACH DELETE n
-    `, { id })
-    
+    await mockDb.deleteNode(id)
     return { success: true }
   } catch (error) {
     console.error('Error deleting node:', error)
@@ -17,7 +20,5 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       message: 'Failed to delete node'
     })
-  } finally {
-    await session.close()
   }
 })

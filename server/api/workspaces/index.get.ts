@@ -1,27 +1,10 @@
-import { getSession } from '../../utils/db'
-import type { Workspace } from '../../../app/types/workflow'
+import { useMockDb } from '../../utils/mockDb'
 
 export default defineEventHandler(async (event) => {
-  const session = await getSession()
+  const mockDb = useMockDb()
   
   try {
-    const result = await session.run(`
-      MATCH (w:Workspace)
-      RETURN w
-      ORDER BY w.createdAt DESC
-    `)
-    
-    const workspaces: Workspace[] = result.records.map(record => {
-      const node = record.get('w')
-      return {
-        id: node.properties.id,
-        name: node.properties.name,
-        description: node.properties.description,
-        createdAt: new Date(node.properties.createdAt),
-        updatedAt: new Date(node.properties.updatedAt)
-      }
-    })
-    
+    const workspaces = await mockDb.getWorkspaces()
     return workspaces
   } catch (error) {
     console.error('Error fetching workspaces:', error)
@@ -29,7 +12,5 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       message: 'Failed to fetch workspaces'
     })
-  } finally {
-    await session.close()
   }
 })
