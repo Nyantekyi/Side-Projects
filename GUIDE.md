@@ -136,11 +136,37 @@ Result in console:
 
 ## Keyboard Shortcuts
 
-Currently, the app uses mouse-based interactions. Future versions may include:
-- `Delete` key to remove selected nodes
-- `Ctrl+Z` / `Cmd+Z` for undo
-- `Ctrl+C` / `Cmd+C` for copy
-- `Ctrl+V` / `Cmd+V` for paste
+The following keyboard shortcuts are available:
+- `Delete` - Remove the currently selected node
+- `Escape` - Deselect nodes and cancel connection mode
+- `Ctrl+S` / `Cmd+S` - Save workflow to local storage
+- `Ctrl+O` / `Cmd+O` - Load workflow from local storage
+- `Ctrl+E` / `Cmd+E` - Export workflow as JSON file
+
+## Saving and Loading Workflows
+
+### Save Workflow (💾 Save)
+- Click the **Save** button in the toolbar to save your current workflow to browser local storage
+- Your workflow persists even after closing the browser
+- Shortcut: `Ctrl+S` / `Cmd+S`
+
+### Load Workflow (📂 Load)
+- Click the **Load** button to restore a previously saved workflow from local storage
+- This will replace the current workflow on the canvas
+- Shortcut: `Ctrl+O` / `Cmd+O`
+
+### Export Workflow (📤 Export)
+- Click the **Export** button to download your workflow as a JSON file
+- The file will be saved to your default downloads folder
+- Format: `workflow-{timestamp}.json`
+- Shortcut: `Ctrl+E` / `Cmd+E`
+
+### Import Workflow (📥 Import)
+- Click the **Import** button to load a workflow from a JSON file
+- Select a previously exported workflow file
+- This will replace the current workflow on the canvas
+
+**Note:** Save uses browser local storage (persists across sessions), while Export creates a downloadable file for backup or sharing.
 
 ## Tips & Best Practices
 
@@ -176,8 +202,8 @@ Currently, the app uses mouse-based interactions. Future versions may include:
 ## Future Enhancements
 
 Potential features for future versions:
-- Save/Load workflows to/from JSON
-- Export workflows
+- Undo/Redo functionality (Ctrl+Z / Cmd+Z)
+- Copy/Paste nodes (Ctrl+C, Ctrl+V / Cmd+C, Cmd+V)
 - Custom node types
 - Advanced data processing
 - Node configuration panels
