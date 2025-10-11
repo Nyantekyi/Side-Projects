@@ -146,6 +146,67 @@ export const useWorkflow = () => {
     selectedNode.value = null
   }
 
+  const saveWorkflow = () => {
+    const workflow: WorkflowState = {
+      nodes: nodes.value,
+      connections: connections.value
+    }
+    localStorage.setItem('workflow-builder-state', JSON.stringify(workflow))
+    alert('Workflow saved successfully!')
+  }
+
+  const loadWorkflow = () => {
+    const saved = localStorage.getItem('workflow-builder-state')
+    if (saved) {
+      try {
+        const workflow: WorkflowState = JSON.parse(saved)
+        nodes.value = workflow.nodes || []
+        connections.value = workflow.connections || []
+        selectedNode.value = null
+        alert('Workflow loaded successfully!')
+      } catch (error) {
+        console.error('Failed to load workflow:', error)
+        alert('Failed to load workflow. The saved data may be corrupted.')
+      }
+    } else {
+      alert('No saved workflow found.')
+    }
+  }
+
+  const exportWorkflow = () => {
+    const workflow: WorkflowState = {
+      nodes: nodes.value,
+      connections: connections.value
+    }
+    const dataStr = JSON.stringify(workflow, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `workflow-${Date.now()}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const importWorkflow = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const workflow: WorkflowState = JSON.parse(e.target?.result as string)
+        nodes.value = workflow.nodes || []
+        connections.value = workflow.connections || []
+        selectedNode.value = null
+        alert('Workflow imported successfully!')
+      } catch (error) {
+        console.error('Failed to import workflow:', error)
+        alert('Failed to import workflow. The file may be invalid.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
   return {
     nodes,
     connections,
@@ -162,6 +223,10 @@ export const useWorkflow = () => {
     finishConnecting,
     cancelConnecting,
     executeWorkflow,
-    clearWorkflow
+    clearWorkflow,
+    saveWorkflow,
+    loadWorkflow,
+    exportWorkflow,
+    importWorkflow
   }
 }

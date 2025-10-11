@@ -10,6 +10,38 @@
       </div>
       <div class="flex gap-3">
         <UButton 
+          @click="saveWorkflow" 
+          size="lg"
+          color="green"
+          variant="soft"
+        >
+          💾 Save
+        </UButton>
+        <UButton 
+          @click="loadWorkflow"
+          size="lg"
+          color="blue"
+          variant="soft"
+        >
+          📂 Load
+        </UButton>
+        <UButton 
+          @click="exportWorkflow"
+          size="lg"
+          color="indigo"
+          variant="soft"
+        >
+          📤 Export
+        </UButton>
+        <UButton 
+          @click="triggerImport"
+          size="lg"
+          color="violet"
+          variant="soft"
+        >
+          📥 Import
+        </UButton>
+        <UButton 
           @click="executeWorkflow" 
           size="lg"
           color="primary"
@@ -70,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useWorkflow } from '../composables/useWorkflow'
 import type { NodeDefinition } from '../types/workflow'
 import WorkflowNode from './WorkflowNode.vue'
@@ -90,13 +122,36 @@ const {
   cancelConnecting,
   removeConnection,
   executeWorkflow,
-  clearWorkflow
+  clearWorkflow,
+  saveWorkflow,
+  loadWorkflow,
+  exportWorkflow,
+  importWorkflow
 } = useWorkflow()
 
 const canvasRef = ref<HTMLElement>()
+const fileInputRef = ref<HTMLInputElement>()
 
 const selectNode = (nodeId: string) => {
   selectedNode.value = nodeId
+}
+
+const triggerImport = () => {
+  if (!fileInputRef.value) {
+    // Create a hidden file input
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        importWorkflow(file)
+      }
+    }
+    input.click()
+  } else {
+    fileInputRef.value.click()
+  }
 }
 
 const deselectAll = () => {
@@ -131,6 +186,46 @@ const addNodeAtPosition = (nodeDef: NodeDefinition, x: number, y: number) => {
   }
   addNode(newNode)
 }
+
+// Keyboard shortcuts
+const handleKeyDown = (e: KeyboardEvent) => {
+  // Delete key - remove selected node
+  if (e.key === 'Delete' && selectedNode.value) {
+    removeNode(selectedNode.value)
+    selectedNode.value = null
+  }
+  
+  // Escape key - deselect and cancel connections
+  if (e.key === 'Escape') {
+    deselectAll()
+  }
+  
+  // Ctrl+S / Cmd+S - Save workflow
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    saveWorkflow()
+  }
+  
+  // Ctrl+O / Cmd+O - Load workflow
+  if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+    e.preventDefault()
+    loadWorkflow()
+  }
+  
+  // Ctrl+E / Cmd+E - Export workflow
+  if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+    e.preventDefault()
+    exportWorkflow()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 
 defineExpose({
   addNodeAtPosition
