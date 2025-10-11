@@ -7,6 +7,8 @@ export interface NodeData {
   label: string
   type: string
   config?: Record<string, any>
+  status?: 'idle' | 'running' | 'success' | 'error'
+  result?: any
 }
 
 export interface WorkflowNode {
@@ -26,7 +28,7 @@ export interface WorkflowState {
   connections: Connection[]
 }
 
-export type NodeType = 'trigger' | 'transform' | 'action' | 'condition'
+export type NodeType = 'trigger' | 'transform' | 'action' | 'condition' | 'file-reader' | 'filter' | 'merge' | 'output'
 
 export interface NodeDefinition {
   type: NodeType
@@ -34,4 +36,5 @@ export interface NodeDefinition {
   icon: string
   color: string
   description: string
+  configurable?: boolean
 }
