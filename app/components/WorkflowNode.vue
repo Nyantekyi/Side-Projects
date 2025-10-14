@@ -1,12 +1,9 @@
 <template>
   <div
-    :class="['workflow-node', { 
-      'selected': isSelected, 
-      'connecting': isConnecting,
-      'status-running': node.data.status === 'running',
-      'status-success': node.data.status === 'success',
-      'status-error': node.data.status === 'error'
-    }]"
+    :class="'absolute w-64 bg-white rounded-xl shadow-lg border-2 transition-all duration-200 cursor-move select-none',
+      isSelected ? 'ring-4 ring-primary-400 ring-opacity-50 shadow-2xl scale-105' : 'hover:shadow-xl hover:-translate-y-1',
+      isConnecting ? 'cursor-crosshair' : ''
+    "
     :style="{
       left: `${node.position.x}px`,
       top: `${node.position.y}px`,
@@ -15,16 +12,25 @@
     @mousedown="startDrag"
     @click.stop="selectNode"
   >
-    <div class="node-header" :style="{ backgroundColor: nodeColor }">
-      <span class="node-icon">{{ nodeIcon }}</span>
-      <span class="node-type">{{ node.data.type }}</span>
-      <span v-if="node.data.status === 'running'" class="status-indicator">⏳</span>
-      <span v-if="node.data.status === 'success'" class="status-indicator">✓</span>
-      <span v-if="node.data.status === 'error'" class="status-indicator">✗</span>
-      <button class="delete-btn" @click.stop="$emit('delete')" title="Delete node">×</button>
+    <div class="flex items-center gap-2 px-4 py-3 text-white rounded-t-lg font-semibold" :style="{ backgroundColor: nodeColor }">
+      <span class="text-xl">{{ nodeIcon }}</span>
+      <span class="flex-1 capitalize">{{ node.data.type }}</span>
+      <button 
+        class="w-6 h-6 rounded hover:bg-white/20 transition-colors text-white font-bold"
+        @click.stop="$emit('delete')"
+        title="Delete node"
+      >
+        ×
+      </button>
     </div>
-    <div class="node-body">
-      <div class="node-label" contenteditable @blur="updateLabel" @click.stop @keydown.enter.prevent="blurOnEnter">
+    
+    <div class="p-4">
+      <div 
+        class="text-sm text-gray-700 outline-none px-2 py-1 rounded transition-colors hover:bg-gray-50 focus:bg-gray-100 focus:ring-2 focus:ring-primary-500" 
+        contenteditable 
+        @blur="updateLabel" 
+        @click.stop
+      >
         {{ node.data.label }}
       </div>
       <button 
@@ -61,7 +67,7 @@
           type="text" 
           :value="node.data.config?.filterValue || ''"
           @input="updateConfig('filterValue', ($event.target as HTMLInputElement).value)"
-          placeholder="json"
+          placeholder="json"https://github.com/Nyantekyi/Side-Projects/pull/4/conflict?name=README.md&ancestor_oid=7e89df51531ec22dd311bca2c6e9edb363cd3a97&base_oid=baf841b8e3c53ae282ccde1620eeb0fa392947bf&head_oid=dfb71352728db6b6c815def3b55f09ce8080da60
         />
       </div>
       <div v-else-if="node.data.type === 'condition'" class="config-content">
@@ -76,22 +82,26 @@
       </div>
       <button class="close-config" @click.stop="showConfig = false">Close</button>
     </div>
-
-    <div class="node-footer">
-      <button 
-        class="connect-btn connect-output"
+    
+    <div class="flex gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+      <UButton 
+        class="flex-1"
+        color="green"
+        variant="soft"
+        size="sm"
         @click.stop="$emit('startConnect')"
-        title="Create connection from this node"
       >
-        →
-      </button>
-      <button 
-        class="connect-btn connect-input"
+        → Output
+      </UButton>
+      <UButton 
+        class="flex-1"
+        color="blue"
+        variant="soft"
+        size="sm"
         @click.stop="$emit('finishConnect')"
-        title="Create connection to this node"
       >
-        ←
-      </button>
+        ← Input
+      </UButton>
     </div>
     
     <!-- Quick Actions -->

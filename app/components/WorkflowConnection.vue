@@ -6,7 +6,7 @@
       :stroke-width="isHovered ? '3' : '2'"
       fill="none"
       stroke-linecap="round"
-      class="connection-path"
+      class="connection-path transition-all duration-200"
       @mouseenter="isHovered = true"
       @mouseleave="isHovered = false"
       @click="$emit('delete')"
@@ -15,9 +15,9 @@
       v-if="isHovered"
       :cx="midX"
       :cy="midY"
-      r="10"
+      r="12"
       fill="#ef4444"
-      class="delete-handle"
+      class="delete-handle cursor-pointer transition-all duration-200 hover:fill-red-600"
       @click.stop="$emit('delete')"
     >
       <title>Delete connection</title>
@@ -48,10 +48,10 @@ const targetNode = computed(() =>
   props.nodes.find(n => n.id === props.connection.targetId)
 )
 
-const sourceX = computed(() => (sourceNode.value?.position.x || 0) + 200)
-const sourceY = computed(() => (sourceNode.value?.position.y || 0) + 60)
+const sourceX = computed(() => (sourceNode.value?.position.x || 0) + 256)
+const sourceY = computed(() => (sourceNode.value?.position.y || 0) + 75)
 const targetX = computed(() => (targetNode.value?.position.x || 0))
-const targetY = computed(() => (targetNode.value?.position.y || 0) + 60)
+const targetY = computed(() => (targetNode.value?.position.y || 0) + 75)
 
 const midX = computed(() => (sourceX.value + targetX.value) / 2)
 const midY = computed(() => (sourceY.value + targetY.value) / 2)
@@ -74,21 +74,5 @@ const pathData = computed(() => {
 <style scoped>
 .connection-path {
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.connection-path:hover {
-  stroke: #3b82f6;
-  stroke-width: 3;
-}
-
-.delete-handle {
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.delete-handle:hover {
-  r: 12;
-  fill: #dc2626;
 }
 </style>

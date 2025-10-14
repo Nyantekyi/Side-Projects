@@ -1,5 +1,5 @@
 <template>
-  <div class="workflow-app">
+  <div class="flex h-screen overflow-hidden bg-gray-50">
     <NodeSidebar @add-node="handleAddNode" />
     <WorkflowCanvas ref="canvasRef" />
   </div>
@@ -17,11 +17,3 @@ const handleAddNode = (nodeDef: NodeDefinition, x?: number, y?: number) => {
   canvasRef.value?.addNodeAtPosition(nodeDef, x || 400, y || 200)
 }
 </script>
-
-<style scoped>
-.workflow-app {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-</style>

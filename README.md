@@ -20,7 +20,10 @@ A visual workflow automation builder similar to n8n, built with Vue.js 3 and Nux
 - 📁 **File Processing**: Read and process different file types (text, JSON, CSV, XML, images)
 - 📊 **Visual Execution Status**: Real-time status indicators showing node execution state
 - 🚀 **Workflow Execution**: Execute workflows and see results in console
-- 💾 **Real-time State Management**: All changes are reflected immediately
+- 💾 **Persistence**: Save and load workflows with localStorage
+- 📤 **Export/Import**: Download and upload workflows as JSON files
+- ⌨️ **Keyboard Shortcuts**: Delete nodes, save, load, and more with keyboard shortcuts
+- 💫 **Real-time State Management**: All changes are reflected immediately
 
 ## Getting Started
 
@@ -66,6 +69,17 @@ npm run preview
 5. **Connect Nodes**: 
    - Click the "→" button on a source node to start connecting
    - Click the "←" button on a target node to complete the connection
+4. **Edit Nodes**: Click on a node's label to edit it inline
+5. **Delete Nodes**: 
+   - Click the "×" button on a node to remove it
+   - Or select a node and press the `Delete` key
+6. **Delete Connections**: Hover over a connection and click the red circle to delete it
+7. **Save Workflow**: Click "💾 Save" or press `Ctrl+S` / `Cmd+S`
+8. **Load Workflow**: Click "📂 Load" or press `Ctrl+O` / `Cmd+O`
+9. **Export Workflow**: Click "📤 Export" or press `Ctrl+E` / `Cmd+E` to download as JSON
+10. **Import Workflow**: Click "📥 Import" to upload a JSON file
+11. **Execute Workflow**: Click the "▶ Execute" button to run your workflow
+12. **Clear Canvas**: Click the "🗑 Clear" button to remove all nodes
 6. **Edit Nodes**: Click on a node's label to edit it inline (press Enter to save)
 7. **Delete Nodes**: Click the "×" button on a node to remove it
 8. **Delete Connections**: Hover over a connection and click the red circle to delete it
