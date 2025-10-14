@@ -8,10 +8,17 @@ A visual workflow automation builder similar to n8n, built with Vue.js 3 and Nux
 - 🔗 **Node Connections**: Create links between nodes to define workflow logic
 - ⚡ **Multiple Node Types**:
   - Trigger: Start the workflow
+  - File Reader: Read and process files from directories
   - Transform: Transform data
+  - Filter: Filter data based on conditions
+  - Merge: Merge multiple data streams
   - Action: Perform actions
   - Condition: Conditional logic
-- 🎯 **Interactive Nodes**: Edit node labels inline
+  - Output: Display or export results
+- 🎯 **Interactive Nodes**: Edit node labels inline and configure node settings
+- 🔧 **Quick Actions**: Add connected nodes or create links with one click
+- 📁 **File Processing**: Read and process different file types (text, JSON, CSV, XML, images)
+- 📊 **Visual Execution Status**: Real-time status indicators showing node execution state
 - 🚀 **Workflow Execution**: Execute workflows and see results in console
 - 💾 **Persistence**: Save and load workflows with localStorage
 - 📤 **Export/Import**: Download and upload workflows as JSON files
@@ -55,7 +62,11 @@ npm run preview
 
 1. **Add Nodes**: Click on a node type in the sidebar or drag it to the canvas
 2. **Move Nodes**: Click and drag nodes to reposition them
-3. **Connect Nodes**: 
+3. **Configure Nodes**: Click the "⚙️" button on configurable nodes to set options
+4. **Quick Actions**:
+   - Click "+ Node" to automatically add and connect a Transform node
+   - Click "🔗 Link" to start connection mode
+5. **Connect Nodes**: 
    - Click the "→" button on a source node to start connecting
    - Click the "←" button on a target node to complete the connection
 4. **Edit Nodes**: Click on a node's label to edit it inline
@@ -69,6 +80,23 @@ npm run preview
 10. **Import Workflow**: Click "📥 Import" to upload a JSON file
 11. **Execute Workflow**: Click the "▶ Execute" button to run your workflow
 12. **Clear Canvas**: Click the "🗑 Clear" button to remove all nodes
+6. **Edit Nodes**: Click on a node's label to edit it inline (press Enter to save)
+7. **Delete Nodes**: Click the "×" button on a node to remove it
+8. **Delete Connections**: Hover over a connection and click the red circle to delete it
+9. **Execute Workflow**: Click the "▶ Execute" button to run your workflow
+10. **Clear Canvas**: Click the "🗑 Clear" button to remove all nodes
+
+### File Reader Node
+
+The File Reader node reads files from a specified directory and processes them based on file type:
+
+- **Text files** (.txt): Extracts content and encoding information
+- **JSON files** (.json): Parses JSON and validates structure
+- **CSV files** (.csv): Extracts columns, rows, and sample data
+- **Image files** (.png, .jpg): Extracts dimensions and format
+- **XML files** (.xml): Reads XML content
+
+Configure the directory path in the node's settings panel.
 
 ## Architecture
 

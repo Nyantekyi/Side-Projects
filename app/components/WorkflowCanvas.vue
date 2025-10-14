@@ -90,6 +90,8 @@
         @delete="removeNode(node.id)"
         @start-connect="startConnecting(node.id)"
         @finish-connect="finishConnecting(node.id)"
+        @quick-add-node="handleQuickAddNode(node)"
+        @quick-connect="startConnecting(node.id)"
       />
 
       <div v-if="nodes.length === 0" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -104,6 +106,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useWorkflow } from '../composables/useWorkflow'
+import { nodeDefinitions } from '../composables/useNodeDefinitions'
 import type { NodeDefinition } from '../types/workflow'
 import WorkflowNode from './WorkflowNode.vue'
 import WorkflowConnection from './WorkflowConnection.vue'
@@ -121,6 +124,7 @@ const {
   finishConnecting,
   cancelConnecting,
   removeConnection,
+  addConnection,
   executeWorkflow,
   clearWorkflow,
   saveWorkflow,
@@ -181,10 +185,39 @@ const addNodeAtPosition = (nodeDef: NodeDefinition, x: number, y: number) => {
     position: { x, y },
     data: {
       label: `${nodeDef.label} Node`,
-      type: nodeDef.type
+      type: nodeDef.type,
+      config: getDefaultConfig(nodeDef.type)
     }
   }
   addNode(newNode)
+  return newNode
+}
+
+const getDefaultConfig = (type: string): Record<string, any> => {
+  switch (type) {
+    case 'file-reader':
+      return { directory: '/user/documents' }
+    case 'filter':
+      return { filterKey: 'type', filterValue: '' }
+    case 'condition':
+      return { condition: true }
+    default:
+      return {}
+  }
+}
+
+const handleQuickAddNode = (sourceNode: any) => {
+  // Add a transform node to the right of the current node
+  const nodeDef = nodeDefinitions.find(def => def.type === 'transform')
+  if (nodeDef) {
+    const newNode = addNodeAtPosition(
+      nodeDef, 
+      sourceNode.position.x + 300, 
+      sourceNode.position.y
+    )
+    // Automatically connect the source node to the new node
+    addConnection(sourceNode.id, newNode.id)
+  }
 }
 
 // Keyboard shortcuts
